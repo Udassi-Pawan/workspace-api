@@ -2,23 +2,28 @@ import {
   WebSocketGateway,
   SubscribeMessage,
   MessageBody,
+  WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
+import { Server } from 'http';
 
 @WebSocketGateway({
   cors: {
     origin: '*',
   },
 })
-  
 export class ChatGateway {
+  @WebSocketServer()
+  server: Server;
   constructor(private readonly chatService: ChatService) {}
 
   @SubscribeMessage('createChat')
-  create(@MessageBody() createChatDto: CreateChatDto) {
-    return this.chatService.create(createChatDto);
+  async create(@MessageBody() createChatDto: CreateChatDto) {
+    const message = await this.chatService.create(createChatDto);
+    this.server.emit('messsage ', message);
+    return message;
   }
 
   @SubscribeMessage('findAllChat')
@@ -42,10 +47,10 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('join')
-  joinRoom() {}
+  joinRoom() {
+    
+  }
 
   @SubscribeMessage('typing')
-  async typing  () {
-
-  }
+  async typing() {}
 }

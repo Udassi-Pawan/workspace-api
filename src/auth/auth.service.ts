@@ -2,6 +2,7 @@ import { Injectable, Req } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { OAuth2Client } from 'google-auth-library';
+import { UsersService } from 'src/schemas/users/users.service';
 
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
@@ -13,6 +14,7 @@ export class AuthService {
   constructor(
     private config: ConfigService,
     private jwt: JwtService,
+    private readonly usersService: UsersService,
   ) {}
   async login(tokenId: string) {
     console.log('request');
@@ -25,6 +27,11 @@ export class AuthService {
       { email, name },
       { expiresIn: '60min', secret: this.config.get('secret') },
     );
+    const curUserFromDb = await this.usersService.getUser({ email });
+    console.log(curUserFromDb);
+    if (!curUserFromDb) {
+      await this.usersService.createUser(email, name);
+    }
     return { authToken };
   }
 }

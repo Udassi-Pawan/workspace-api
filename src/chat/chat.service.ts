@@ -4,12 +4,14 @@ import { UpdateChatDto } from './dto/update-chat.dto';
 
 @Injectable()
 export class ChatService {
+  messages = [{ name: 'udassi', text: 'ee kya hui gao' }];
   create(createChatDto: CreateChatDto) {
-    return 'This action adds a new chat';
+    const message = { ...createChatDto };
+    return this.messages.push(message);
   }
 
   findAll() {
-    return `This action returns all chat`;
+    return this.messages;
   }
 
   // findOne(id: number) {
