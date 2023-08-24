@@ -22,8 +22,8 @@ export class GroupsController {
   @UseGuards(AuthGuard('jwt'))
   @Post('create')
   async createGroup(@Body() data: CreateUserDto, @Req() req: Request) {
-    // return 'workin';
-    return this.groupsService.createGroup(data.name, req.user.email);
+    const userFromDb  = await this.usersService.getUser(req.user.email);
+    return this.groupsService.createGroup(data.name, userFromDb._id);
   }
 
   @Get('test')

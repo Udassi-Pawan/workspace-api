@@ -3,6 +3,8 @@ import { GroupsRepository } from './groups.repository';
 import { Group, GroupDocument } from './groups.schema';
 import { UsersService } from '../users/users.service';
 import { AuthGuard } from '@nestjs/passport';
+import mongoose from 'mongoose';
+import 'bson';
 
 @Injectable()
 export class GroupsService {
@@ -16,18 +18,18 @@ export class GroupsService {
 
   async createGroup(
     name: string,
-    creatorEmail: string,
+    creatorId: mongoose.Schema.Types.ObjectId,
   ): Promise<GroupDocument> {
     const createdGroup = await this.groupsRepository.create({
       name,
-      members: [creatorEmail],
+      members: [creatorId],
     });
     console.log(createdGroup._id);
     await this.usersService.updateUser(
-      { email: creatorEmail },
+      { _id: creatorId },
       { $push: { groups: String(createdGroup._id) } },
     );
-
+    console.log('req');
     return createdGroup;
   }
 }
