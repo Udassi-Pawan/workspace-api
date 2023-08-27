@@ -9,8 +9,7 @@ import 'bson';
 @Injectable()
 export class GroupsService {
   constructor(
-    private readonly groupsRepository: GroupsRepository,
-    private readonly usersService: UsersService,
+    private readonly groupsRepository: GroupsRepository, // private readonly usersService: UsersService,
   ) {}
   async getGroupById(userId: string): Promise<Group> {
     return this.groupsRepository.findOne({ userId });
@@ -25,11 +24,17 @@ export class GroupsService {
       members: [creatorId],
     });
     console.log(createdGroup._id);
-    await this.usersService.updateUser(
-      { _id: creatorId },
-      { $push: { groups: String(createdGroup._id) } },
-    );
+    // await this.usersService.updateUser(
+    //   { _id: creatorId },
+    //   { $push: { groups: String(createdGroup._id) } },
+    // );
     console.log('req');
     return createdGroup;
+  }
+  async joinGroup(userId: string, groupId: string) {
+    await this.groupsRepository.findOneAndUpdate(
+      { _id: groupId },
+      { $push: { members: userId } },
+    );
   }
 }

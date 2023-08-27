@@ -1,21 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
+import { UserDocument } from 'src/schemas/users/user.schema';
+import { Chat } from './entities/chat.entity';
 
 @Injectable()
 export class ChatService {
-  messages = [{ name: 'udassi', text: 'ee kya hui gao' }];
+  messages: Chat[] = [{ name: 'udassi', text: 'ee kya hui gao', groupId: '1' }];
   clientToUser = {};
-  identify(name: string, clientId: string) {
-    console.log(name, clientId);
-    return (this.clientToUser[clientId] = name);
+  identify(userData: UserDocument, clientId: string) {
+    return (this.clientToUser[clientId] = userData.name);
   }
 
   getClientName(clientId: string) {
     return this.clientToUser[clientId];
   }
-  create(createChatDto: CreateChatDto) {
-    const message = { ...createChatDto };
+  create(msg: Chat) {
+    const message = { ...msg };
     this.messages.push(message);
     return message;
   }

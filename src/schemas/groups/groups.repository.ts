@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Group, GroupDocument } from './groups.schema';
-import { Model, FilterQuery } from 'mongoose';
+import { Model, FilterQuery, UpdateQuery } from 'mongoose';
 
 @Injectable()
 export class GroupsRepository {
@@ -17,7 +17,7 @@ export class GroupsRepository {
   }
   async findOneAndUpdate(
     GroupFilterQuery: FilterQuery<Group>,
-    Group: Group,
+    Group: UpdateQuery<Group>,
   ): Promise<Group> {
     return this.GroupModel.findOneAndUpdate(GroupFilterQuery, Group);
   }

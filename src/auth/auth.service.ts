@@ -25,7 +25,7 @@ export class AuthService {
     const { email, name } = ticket.getPayload();
     const authToken = this.jwt.sign(
       { email, name },
-      { expiresIn: '60min', secret: this.config.get('secret') },
+      { expiresIn: '60 days', secret: this.config.get('secret') },
     );
     const curUserFromDb = await this.usersService.getUser(email);
     console.log(curUserFromDb);

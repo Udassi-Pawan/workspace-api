@@ -13,6 +13,7 @@ import { Socket } from 'socket.io';
 import { AuthGuard } from '@nestjs/passport';
 import { Req, UseGuards } from '@nestjs/common';
 import { WsGuard } from 'src/auth/strategy/ws.gaurd';
+import { UsersService } from 'src/schemas/users/users.service';
 
 type Request = {
   user: any;
@@ -25,17 +26,50 @@ type Request = {
 })
 export class ChatGateway {
   @WebSocketServer()
-  server: Server;
-  constructor(private readonly chatService: ChatService) {}
+  server: any;
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly usersService: UsersService,
+  ) {}
 
   @UseGuards(WsGuard)
+  @SubscribeMessage('join')
+  async joinRoom(@ConnectedSocket() client: Socket, @Req() req: Request) {
+    this.chatService.identify(req.user.name, client.id);
+
+    const userFromDb: any = await this.usersService.getUser(req.user.email);
+
+    const groups = userFromDb.groups.reduce(
+      (total, curr: any) => [...total, String(curr._id)],
+      [],
+    );
+    console.log(groups);
+
+    client.join(groups);
+    return req.user.name;
+  }
+  @UseGuards(WsGuard)
   @SubscribeMessage('createChat')
-  async create(@MessageBody() createChatDto: CreateChatDto) {
+  async create(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() createChatDto: CreateChatDto,
+    @Req() req: Request,
+  ) {
     console.log('received ', createChatDto);
-    const message = await this.chatService.create(createChatDto);
-    this.server.emit('messsage', message, (res) => {
-      // console.log(res);
+    const message = await this.chatService.create({
+      name: req.user.name,
+      ...createChatDto,
     });
+
+    // client.in('abcd').emit('message', message, () => {
+    //   console.log('sent', message);
+    // });
+    this.server.to(createChatDto.groupId).emit('messsage', message, (res) => {
+      console.log('sent to abcd', res);
+    });
+    // this.server.emit('messsage', message, (res) => {
+    //   // console.log(res);
+    // });
     return message;
   }
 
@@ -57,13 +91,6 @@ export class ChatGateway {
   @SubscribeMessage('removeChat')
   remove(@MessageBody() id: number) {
     return this.chatService.remove(id);
-  }
-
-  @UseGuards(WsGuard)
-  @SubscribeMessage('join')
-  joinRoom(@ConnectedSocket() client: Socket, @Req() req: Request) {
-    this.chatService.identify(req.user.name, client.id);
-    return req.user.name;
   }
 
   // @SubscribeMessage('typing')
