@@ -61,15 +61,9 @@ export class ChatGateway {
       ...createChatDto,
     });
 
-    // client.in('abcd').emit('message', message, () => {
-    //   console.log('sent', message);
-    // });
     this.server.to(createChatDto.groupId).emit('messsage', message, (res) => {
       console.log('sent to abcd', res);
     });
-    // this.server.emit('messsage', message, (res) => {
-    //   // console.log(res);
-    // });
     return message;
   }
 
@@ -77,11 +71,6 @@ export class ChatGateway {
   findAll() {
     return this.chatService.findAll();
   }
-
-  // @SubscribeMessage('findOneChat')
-  // findOne(@MessageBody() id: number) {
-  //   return this.chatService.findOne(id);
-  // }
 
   @SubscribeMessage('updateChat')
   update(@MessageBody() updateChatDto: UpdateChatDto) {
@@ -93,14 +82,63 @@ export class ChatGateway {
     return this.chatService.remove(id);
   }
 
-  // @SubscribeMessage('typing')
-  // async typing(
-  //   @MessageBody('isTyping') isTyping: boolean,
-  //   @ConnectedSocket() client: Socket,
-  // ) {
-  //   const name = this.chatService.getClientName(client.id);
-  //   console.log(name, client.id, 'is typing');
-  //   console.log(this.chatService.clientToUser);
-  //   client.broadcast.emit('typing', { name, isTyping });
-  // }
+  /// video call
+
+  users = {};
+
+  socketToRoom = {};
+
+  @SubscribeMessage('join room')
+  async joinVideoRoom(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() roomID,
+  ) {
+    console.log('received ', roomID);
+    if (this.users[roomID]) {
+      const length = this.users[roomID].length;
+      if (length === 4) {
+        socket.emit('room full');
+        return;
+      }
+      this.users[roomID].push(socket.id);
+    } else {
+      this.users[roomID] = [socket.id];
+    }
+    this.socketToRoom[socket.id] = roomID;
+    const usersInThisRoom = this.users[roomID].filter((id) => id !== socket.id);
+
+    socket.emit('all users', usersInThisRoom);
+  }
+
+  @SubscribeMessage('sending signal')
+  async sendingSignal(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() payload,
+  ) {
+    this.server.to(payload.userToSignal).emit('user joined', {
+      signal: payload.signal,
+      callerID: payload.callerID,
+    });
+  }
+
+  @SubscribeMessage('returning signal')
+  async returningSignal(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() payload,
+  ) {
+    this.server.to(payload.callerID).emit('receiving returned signal', {
+      signal: payload.signal,
+      id: socket.id,
+    });
+  }
+
+  @SubscribeMessage('disconnect')
+  async disconnect(@ConnectedSocket() socket: Socket, @MessageBody() payload) {
+    const roomID = this.socketToRoom[socket.id];
+    let room = this.users[roomID];
+    if (room) {
+      room = room.filter((id) => id !== socket.id);
+      this.users[roomID] = room;
+    }
+  }
 }
