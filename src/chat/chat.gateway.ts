@@ -34,7 +34,7 @@ export class ChatGateway {
     client.on('disconnecting', async (reason) => {
       const user = this.socketToUser[client.id];
       if (!user) return;
-      console.log('disconnected', user);
+      console.log('disconnected', user, client.id);
 
       const userFromDb: any = await this.usersService.getUser(user.email);
 
@@ -57,10 +57,11 @@ export class ChatGateway {
   @UseGuards(WsGuard)
   @SubscribeMessage('join')
   async joinRoom(@ConnectedSocket() client: Socket, @Req() req: Request) {
+    this.socketToUser[client.id] = req.user;
+    console.log('connected', client.id, req.user.name);
     this.chatService.identify(req.user.name, client.id);
 
     const userFromDb: any = await this.usersService.getUser(req.user.email);
-    this.socketToUser[client.id] = req.user;
     const groups = userFromDb.groups.reduce(
       (total, curr: any) => [...total, String(curr._id)],
       [],
@@ -70,7 +71,11 @@ export class ChatGateway {
 
     groups.map(async (g) => {
       if (!this.roomJoined[g]) this.roomJoined[g] = [];
-      this.roomJoined[g].push({ clientId: client.id, user: req.user });
+      this.roomJoined[g].push({
+        ...req.user,
+        _id: userFromDb._id,
+        clientId: client.id,
+      });
       this.server
         .to(g)
         .emit(
@@ -126,35 +131,41 @@ export class ChatGateway {
 
   socketToRoom = {};
 
-  @UseGuards(WsGuard)
-  @SubscribeMessage('join room')
-  async joinVideoRoom(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() roomID,
-    @Req() req: Request,
-  ) {
-    console.log('received ', roomID);
-    if (this.users[roomID]) {
-      const length = this.users[roomID].length;
-      if (length === 4) {
-        socket.emit('room full');
-        return;
-      }
-      this.users[roomID].push(socket.id);
-    } else {
-      this.users[roomID] = [socket.id];
-    }
-    this.socketToRoom[socket.id] = roomID;
-    const usersInThisRoom = this.users[roomID].filter((id) => id !== socket.id);
+  // @UseGuards(WsGuard)
+  // @SubscribeMessage('join room')
+  // async joinVideoRoom(
+  //   @ConnectedSocket() socket: Socket,
+  //   @MessageBody() roomID,
+  //   @Req() req: Request,
+  // ) {
+  //   console.log('received ', roomID);
+  //   if (this.users[roomID]) {
+  //     const length = this.users[roomID].length;
+  //     if (length === 4) {
+  //       socket.emit('room full');
+  //       return;
+  //     }
+  //     this.users[roomID].push(socket.id);
+  //   } else {
+  //     this.users[roomID] = [socket.id];
+  //   }
+  //   this.socketToRoom[socket.id] = roomID;
+  //   const usersInThisRoom = this.users[roomID].filter((id) => id !== socket.id);
 
-    socket.emit('all users', usersInThisRoom);
-  }
+  //   socket.emit('all users', usersInThisRoom);
+  // }
 
   @SubscribeMessage('sending signal')
   async sendingSignal(
     @ConnectedSocket() socket: Socket,
     @MessageBody() payload,
   ) {
+    console.log(
+      'sending signal to ',
+      payload.userToSignal,
+      'from',
+      payload.callerID,
+    );
     this.server.to(payload.userToSignal).emit('user joined', {
       signal: payload.signal,
       callerID: payload.callerID,
@@ -166,26 +177,28 @@ export class ChatGateway {
     @ConnectedSocket() socket: Socket,
     @MessageBody() payload,
   ) {
+    console.log('returning signal to', payload.callerID);
+
     this.server.to(payload.callerID).emit('receiving returned signal', {
       signal: payload.signal,
       id: socket.id,
     });
   }
 
-  @UseGuards(WsGuard)
-  @SubscribeMessage('disconnect')
-  async disconnect(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() payload,
-    @Req() req: Request,
-  ) {
-    console.log('disconnect', req.user.name, socket.id);
+  // @UseGuards(WsGuard)
+  // @SubscribeMessage('disconnect')
+  // async disconnect(
+  //   @ConnectedSocket() socket: Socket,
+  //   @MessageBody() payload,
+  //   @Req() req: Request,
+  // ) {
+  //   console.log('disconnect', req.user.name, socket.id);
 
-    const roomID = this.socketToRoom[socket.id];
-    let room = this.users[roomID];
-    if (room) {
-      room = room.filter((id) => id !== socket.id);
-      this.users[roomID] = room;
-    }
-  }
+  //   const roomID = this.socketToRoom[socket.id];
+  //   let room = this.users[roomID];
+  //   if (room) {
+  //     room = room.filter((id) => id !== socket.id);
+  //     this.users[roomID] = room;
+  //   }
+  // }
 }
