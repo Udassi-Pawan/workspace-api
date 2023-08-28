@@ -8,9 +8,7 @@ import {
 import { ChatService } from './chat.service';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
-import { Server } from 'http';
 import { Socket } from 'socket.io';
-import { AuthGuard } from '@nestjs/passport';
 import { Req, UseGuards } from '@nestjs/common';
 import { WsGuard } from 'src/auth/strategy/ws.gaurd';
 import { UsersService } from 'src/schemas/users/users.service';
@@ -32,20 +30,58 @@ export class ChatGateway {
     private readonly usersService: UsersService,
   ) {}
 
+  handleConnection(client: Socket) {
+    client.on('disconnecting', async (reason) => {
+      const user = this.socketToUser[client.id];
+      if (!user) return;
+      console.log('disconnected', user);
+
+      const userFromDb: any = await this.usersService.getUser(user.email);
+
+      const groups = userFromDb.groups.reduce(
+        (total, curr: any) => [...total, String(curr._id)],
+        [],
+      );
+
+      groups.map(async (g) => {
+        this.roomJoined[g] = this.roomJoined[g].filter(function (e) {
+          return e.clientId !== client.id;
+        });
+        this.server
+          .to(g)
+          .emit('usersOnline', { groupId: g, usersOnline: this.roomJoined[g] });
+      });
+    });
+  }
+
   @UseGuards(WsGuard)
   @SubscribeMessage('join')
   async joinRoom(@ConnectedSocket() client: Socket, @Req() req: Request) {
     this.chatService.identify(req.user.name, client.id);
 
     const userFromDb: any = await this.usersService.getUser(req.user.email);
-
+    this.socketToUser[client.id] = req.user;
     const groups = userFromDb.groups.reduce(
       (total, curr: any) => [...total, String(curr._id)],
       [],
     );
+    client.join(groups);
     console.log(groups);
 
-    client.join(groups);
+    groups.map(async (g) => {
+      if (!this.roomJoined[g]) this.roomJoined[g] = [];
+      this.roomJoined[g].push({ clientId: client.id, user: req.user });
+      this.server
+        .to(g)
+        .emit(
+          'usersOnline',
+          { groupId: g, usersOnline: this.roomJoined[g] },
+          (res) => {
+            console.log('sent online users');
+          },
+        );
+    });
+
     return req.user.name;
   }
   @UseGuards(WsGuard)
@@ -83,15 +119,19 @@ export class ChatGateway {
   }
 
   /// video call
+  roomJoined = {};
+  socketToUser = {};
 
   users = {};
 
   socketToRoom = {};
 
+  @UseGuards(WsGuard)
   @SubscribeMessage('join room')
   async joinVideoRoom(
     @ConnectedSocket() socket: Socket,
     @MessageBody() roomID,
+    @Req() req: Request,
   ) {
     console.log('received ', roomID);
     if (this.users[roomID]) {
@@ -132,8 +172,15 @@ export class ChatGateway {
     });
   }
 
+  @UseGuards(WsGuard)
   @SubscribeMessage('disconnect')
-  async disconnect(@ConnectedSocket() socket: Socket, @MessageBody() payload) {
+  async disconnect(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() payload,
+    @Req() req: Request,
+  ) {
+    console.log('disconnect', req.user.name, socket.id);
+
     const roomID = this.socketToRoom[socket.id];
     let room = this.users[roomID];
     if (room) {
