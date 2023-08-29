@@ -69,6 +69,8 @@ export class ChatGateway {
     client.join(groups);
     console.log(groups);
 
+    const callStatusForUser = {};
+
     groups.map(async (g) => {
       if (!this.roomJoined[g]) this.roomJoined[g] = [];
       this.roomJoined[g].push({
@@ -85,9 +87,11 @@ export class ChatGateway {
             console.log('sent online users');
           },
         );
+      callStatusForUser[g] = this.callStatus[g];
+      client.emit('callStatus', this.callStatus);
     });
 
-    return req.user.name;
+    return { callStatus: callStatusForUser };
   }
   @UseGuards(WsGuard)
   @SubscribeMessage('createChat')
@@ -126,34 +130,7 @@ export class ChatGateway {
   /// video call
   roomJoined = {};
   socketToUser = {};
-
-  users = {};
-
-  socketToRoom = {};
-
-  // @UseGuards(WsGuard)
-  // @SubscribeMessage('join room')
-  // async joinVideoRoom(
-  //   @ConnectedSocket() socket: Socket,
-  //   @MessageBody() roomID,
-  //   @Req() req: Request,
-  // ) {
-  //   console.log('received ', roomID);
-  //   if (this.users[roomID]) {
-  //     const length = this.users[roomID].length;
-  //     if (length === 4) {
-  //       socket.emit('room full');
-  //       return;
-  //     }
-  //     this.users[roomID].push(socket.id);
-  //   } else {
-  //     this.users[roomID] = [socket.id];
-  //   }
-  //   this.socketToRoom[socket.id] = roomID;
-  //   const usersInThisRoom = this.users[roomID].filter((id) => id !== socket.id);
-
-  //   socket.emit('all users', usersInThisRoom);
-  // }
+  callStatus = [];
 
   @SubscribeMessage('sending signal')
   async sendingSignal(
@@ -169,6 +146,7 @@ export class ChatGateway {
     this.server.to(payload.userToSignal).emit('user joined', {
       signal: payload.signal,
       callerID: payload.callerID,
+      groupId: payload.groupId,
     });
   }
 
@@ -185,20 +163,41 @@ export class ChatGateway {
     });
   }
 
-  // @UseGuards(WsGuard)
-  // @SubscribeMessage('disconnect')
-  // async disconnect(
-  //   @ConnectedSocket() socket: Socket,
-  //   @MessageBody() payload,
-  //   @Req() req: Request,
-  // ) {
-  //   console.log('disconnect', req.user.name, socket.id);
+  @SubscribeMessage('acceptCall')
+  async acceptCall(
+    @ConnectedSocket() socket: Socket,
+    @Req() req: Request,
+    @MessageBody('groupId') groupId,
+  ) {
+    console.log('acceptCall', req.user.name);
+    this.callStatus.push({ ...req.user, clientId: socket.id });
+    this.server.to(groupId).emit('callStatus', this.callStatus);
+  }
 
-  //   const roomID = this.socketToRoom[socket.id];
-  //   let room = this.users[roomID];
-  //   if (room) {
-  //     room = room.filter((id) => id !== socket.id);
-  //     this.users[roomID] = room;
-  //   }
-  // }
+  @UseGuards(WsGuard)
+  @SubscribeMessage('startCall')
+  async startCall(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody('groupId') groupId,
+    @Req() req: Request,
+  ) {
+    console.log('startCall', groupId, req.user.name);
+    this.callStatus = [{ ...req.user, clientId: socket.id }];
+    this.server.to(groupId).emit('callStatus', this.callStatus);
+  }
+
+  @SubscribeMessage('clearCall')
+  async clearCall(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody('groupId') groupId,
+  ) {
+    this.callStatus = [];
+    console.log('call cleared');
+  }
+
+  @SubscribeMessage('endCall')
+  async endCall(@ConnectedSocket() socket: Socket, @MessageBody() payload) {
+    const user = this.socketToUser[socket.id];
+    console.log('call ended by', user);
+  }
 }
