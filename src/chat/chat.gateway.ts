@@ -74,7 +74,7 @@ export class ChatGateway {
     );
 
     client.join(groups);
-    console.log(groups);
+    console.log(groups, 'gro');
 
     const callStatusForUser = {};
 
