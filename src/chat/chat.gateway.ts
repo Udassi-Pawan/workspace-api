@@ -56,7 +56,13 @@ export class ChatGateway {
 
   @UseGuards(WsGuard)
   @SubscribeMessage('join')
-  async joinRoom(@ConnectedSocket() client: Socket, @Req() req: Request) {
+  async joinRoom(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('peer') peer: any,
+    @Req() req: Request,
+  ) {
+    // if (!peer) return;
+    console.log('peer', peer);
     this.socketToUser[client.id] = req.user;
     console.log('connected', client.id, req.user.name);
     this.chatService.identify(req.user.name, client.id);
@@ -66,6 +72,7 @@ export class ChatGateway {
       (total, curr: any) => [...total, String(curr._id)],
       [],
     );
+
     client.join(groups);
     console.log(groups);
 
@@ -77,6 +84,7 @@ export class ChatGateway {
         ...req.user,
         _id: userFromDb._id,
         clientId: client.id,
+        peerId: peer,
       });
       this.server
         .to(g)
@@ -93,6 +101,7 @@ export class ChatGateway {
 
     return { callStatus: callStatusForUser };
   }
+
   @UseGuards(WsGuard)
   @SubscribeMessage('createChat')
   async create(
