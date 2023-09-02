@@ -65,7 +65,7 @@ export class ChatGateway {
     console.log('peer', peer);
     this.socketToUser[client.id] = req.user;
     console.log('connected', client.id, req.user.name);
-    this.chatService.identify(req.user.name, client.id);
+    // this.chatService.identify(req.user.name, client.id);
 
     const userFromDb: any = await this.usersService.getUser(req.user.email);
     const groups = userFromDb.groups.reduce(
@@ -102,6 +102,9 @@ export class ChatGateway {
     return { callStatus: callStatusForUser };
   }
 
+
+
+  
   @UseGuards(WsGuard)
   @SubscribeMessage('createChat')
   async create(
@@ -140,37 +143,6 @@ export class ChatGateway {
   roomJoined = {};
   socketToUser = {};
   callStatus = [];
-
-  @SubscribeMessage('sending signal')
-  async sendingSignal(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() payload,
-  ) {
-    console.log(
-      'sending signal to ',
-      payload.userToSignal,
-      'from',
-      payload.callerID,
-    );
-    this.server.to(payload.userToSignal).emit('user joined', {
-      signal: payload.signal,
-      callerID: payload.callerID,
-      groupId: payload.groupId,
-    });
-  }
-
-  @SubscribeMessage('returning signal')
-  async returningSignal(
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() payload,
-  ) {
-    console.log('returning signal to', payload.callerID);
-
-    this.server.to(payload.callerID).emit('receiving returned signal', {
-      signal: payload.signal,
-      id: socket.id,
-    });
-  }
 
   @SubscribeMessage('acceptCall')
   async acceptCall(

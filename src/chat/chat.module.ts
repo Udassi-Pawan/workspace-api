@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
 import { JwtModule } from '@nestjs/jwt';
-import { UsersService } from 'src/schemas/users/users.service';
 import { UsersModule } from 'src/schemas/users/users.module';
 
 @Module({

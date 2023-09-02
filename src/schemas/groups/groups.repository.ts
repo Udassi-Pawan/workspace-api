@@ -21,4 +21,7 @@ export class GroupsRepository {
   ): Promise<Group> {
     return this.GroupModel.findOneAndUpdate(GroupFilterQuery, Group);
   }
+  async findAll() {
+    return this.GroupModel.find({}).populate('members');
+  }
 }

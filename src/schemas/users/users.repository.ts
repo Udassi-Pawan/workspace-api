@@ -7,7 +7,7 @@ import { Model, FilterQuery } from 'mongoose';
 export class UsersRepository {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
   async findOne(userFilterQuery: FilterQuery<User>): Promise<UserDocument> {
-    return this.userModel.findOne(userFilterQuery).populate('groups');
+    return this.userModel.findOne(userFilterQuery);
   }
   async create(user: User): Promise<User> {
     const newUser = new this.userModel(user);
@@ -20,5 +20,9 @@ export class UsersRepository {
     return this.userModel.findOneAndUpdate(userFilterQuery, user, {
       populate: { path: 'groups' },
     });
+  }
+  async findAll() {
+    console.log('all', this.userModel.find({}));
+    return this.userModel.find({});
   }
 }

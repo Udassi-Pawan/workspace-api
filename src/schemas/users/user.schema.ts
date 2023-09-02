@@ -1,15 +1,19 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
-import { Group } from '../groups/groups.schema';
 
 export type UserDocument = User & Document;
 
 @Schema()
 export class User {
-  @Prop()
+  @Prop({
+    required: true,
+  })
   name: string;
 
-  @Prop()
+  @Prop({
+    required: true,
+    unique: true,
+  })
   email: string;
 
   @Prop({

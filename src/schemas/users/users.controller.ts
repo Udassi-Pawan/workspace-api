@@ -32,6 +32,13 @@ export class UsersController {
     // return 'working';
     return this.usersService.createUser(data.email, data.name);
   }
+
+  @Get('/all')
+  findAll() {
+    console.log('get all users', this.usersService.findAll());
+    return this.usersService.findAll();
+  }
+
   @Get('/:email')
   async getUser(@Param('email') email) {
     return this.usersService.getUser(email);

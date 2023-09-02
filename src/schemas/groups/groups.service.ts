@@ -9,7 +9,8 @@ import 'bson';
 @Injectable()
 export class GroupsService {
   constructor(
-    private readonly groupsRepository: GroupsRepository, // private readonly usersService: UsersService,
+    private readonly groupsRepository: GroupsRepository,
+    private readonly usersService: UsersService,
   ) {}
   async getGroupById(userId: string): Promise<Group> {
     return this.groupsRepository.findOne({ userId });
@@ -18,16 +19,27 @@ export class GroupsService {
   async createGroup(
     name: string,
     creatorId: mongoose.Schema.Types.ObjectId,
-  ): Promise<GroupDocument> {
+    members: mongoose.Schema.Types.ObjectId[],
+  ): Promise<GroupDocument | string> {
+    const allGroups = await this.getAllGroups();
+    if (allGroups.find((g) => g.name == name)) {
+      console.log('already exists');
+      return 'Name already exists';
+    }
     const createdGroup = await this.groupsRepository.create({
       name,
-      members: [creatorId],
+      members,
+      admin: creatorId,
     });
     console.log(createdGroup._id);
-    // await this.usersService.updateUser(
-    //   { _id: creatorId },
-    //   { $push: { groups: String(createdGroup._id) } },
-    // );
+
+    members.map(async (memberId) => {
+      await this.usersService.updateUser(
+        { _id: memberId },
+        { $push: { groups: String(createdGroup._id) } },
+      );
+    });
+
     console.log('req');
     return createdGroup;
   }
@@ -36,5 +48,8 @@ export class GroupsService {
       { _id: groupId },
       { $push: { members: userId } },
     );
+  }
+  async getAllGroups() {
+    return await this.groupsRepository.findAll();
   }
 }

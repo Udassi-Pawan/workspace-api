@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { User, UserDocument } from './user.schema';
 
-
-
 @Injectable()
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
@@ -19,5 +17,8 @@ export class UsersService {
   }
   async updateUser(filter, update) {
     return this.usersRepository.findOneAndUpdate(filter, update);
+  }
+  async findAll() {
+    return await this.usersRepository.findAll();
   }
 }

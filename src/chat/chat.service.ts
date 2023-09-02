@@ -8,9 +8,9 @@ import { Chat } from './entities/chat.entity';
 export class ChatService {
   messages: Chat[] = [{ name: 'udassi', text: 'ee kya hui gao', groupId: '1' }];
   clientToUser = {};
-  identify(userData: UserDocument, clientId: string) {
-    return (this.clientToUser[clientId] = userData.name);
-  }
+  // identify(userData: UserDocument, clientId: string) {
+  //   return (this.clientToUser[clientId] = userData.name);
+  // }
 
   getClientName(clientId: string) {
     return this.clientToUser[clientId];

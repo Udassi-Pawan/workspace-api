@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from '../users/users.service';
+import mongoose from 'mongoose';
 
 class CreateUserDto {
   name: string;
@@ -21,13 +22,20 @@ export class GroupsController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('create')
-  async createGroup(@Body() data: CreateUserDto, @Req() req: Request) {
-    const userFromDb  = await this.usersService.getUser(req.user.email);
-    return this.groupsService.createGroup(data.name, userFromDb._id);
+  async createGroup(
+    @Body('members') members: mongoose.Schema.Types.ObjectId[],
+    @Body('name') name: string,
+    @Req() req: Request,
+  ) {
+    const userFromDb = await this.usersService.getUser(req.user.email);
+    return this.groupsService.createGroup(name, userFromDb._id, [
+      userFromDb._id,
+      ...members,
+    ]);
   }
 
-  @Get('test')
-  test() {
-    return 'sg';
+  @Get('all')
+  all() {
+    return this.groupsService.getAllGroups();
   }
 }
