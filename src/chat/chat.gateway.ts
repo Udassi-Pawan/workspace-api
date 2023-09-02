@@ -40,14 +40,17 @@ export class ChatGateway {
         (total, curr: any) => [...total, String(curr._id)],
         [],
       );
-
       groups?.map(async (g) => {
         this.roomJoined[g] = this.roomJoined[g]?.filter(function (e) {
           return e.clientId !== client.id;
         });
-        this.server
-          .to(g)
-          .emit(`usersOnline${String(g)}`, { usersOnline: this.roomJoined[g] });
+        this.callStatus[g] = this.callStatus[g]?.filter(function (e) {
+          return e.clientId !== client.id;
+        });
+        this.server.to(g).emit(`usersOnline${String(g)}`, {
+          usersOnline: this.roomJoined[g],
+          callStatus: this.callStatus[g],
+        });
       });
     });
   }
@@ -61,7 +64,10 @@ export class ChatGateway {
     console.log('request for users online ', groupId, {
       usersOnline: this.roomJoined[groupId],
     });
-    return { usersOnline: this.roomJoined[groupId] };
+    return {
+      usersOnline: this.roomJoined[groupId],
+      callStatus: this.callStatus[groupId],
+    };
   }
 
   @UseGuards(WsGuard)
@@ -77,10 +83,10 @@ export class ChatGateway {
     );
 
     client.join(groups);
-
     const callStatusForUser = {};
 
     groups.map(async (g) => {
+      if (this.callStatus[g]) callStatusForUser[g] = this.callStatus[g];
       if (!this.roomJoined[g]) this.roomJoined[g] = [];
       this.roomJoined[g].push({
         ...req.user,
@@ -96,11 +102,9 @@ export class ChatGateway {
             console.log(`sent online users with event usersOnline${String(g)}`);
           },
         );
-      callStatusForUser[g] = this.callStatus[g];
-      client.emit('callStatus', this.callStatus);
     });
 
-    return { callStatus: callStatusForUser };
+    return callStatusForUser;
   }
 
   @UseGuards(WsGuard)
@@ -112,38 +116,25 @@ export class ChatGateway {
   ) {
     console.log('received ', text, groupId, req.user.name);
     const userFromDb = await this.usersService.getUser(req.user.email);
-    const message = await this.chatService.create({
-      sender: userFromDb._id,
-      senderName: userFromDb.name,
-      text,
-      groupId,
-    });
+    if (userFromDb.groups.find((g) => String(g) == groupId)) {
+      const message = await this.chatService.create({
+        sender: userFromDb._id,
+        senderName: userFromDb.name,
+        text,
+        groupId,
+      });
 
-    this.server.to(groupId).emit('message', message);
-    this.server.to(groupId).emit(`message ${groupId}`, message);
-    return message;
+      this.server.to(groupId).emit('message', message);
+      this.server.to(groupId).emit(`message ${groupId}`, message);
+      return message;
+    } else return 'user not member of group';
   }
 
-  @SubscribeMessage('findAllChat')
-  findAll() {
-    return this.chatService.findAll();
-  }
-
-  /// video call
   roomJoined = {};
   socketToUser = {};
-  callStatus = [];
+  callStatus = {};
 
-  @SubscribeMessage('acceptCall')
-  async acceptCall(
-    @ConnectedSocket() socket: Socket,
-    @Req() req: Request,
-    @MessageBody('groupId') groupId,
-  ) {
-    console.log('acceptCall', req.user.name);
-    this.callStatus.push({ ...req.user, clientId: socket.id });
-    this.server.to(groupId).emit('callStatus', this.callStatus);
-  }
+  /////////////////////////// video
 
   @UseGuards(WsGuard)
   @SubscribeMessage('startCall')
@@ -153,8 +144,21 @@ export class ChatGateway {
     @Req() req: Request,
   ) {
     console.log('startCall', groupId, req.user.name);
-    this.callStatus = [{ ...req.user, clientId: socket.id }];
-    this.server.to(groupId).emit('callStatus', this.callStatus);
+    this.callStatus[groupId] = [{ ...req.user, clientId: socket.id }];
+    this.server
+      .to(groupId)
+      .emit(`callStatus${groupId}`, this.callStatus[groupId]);
+  }
+
+  @SubscribeMessage('acceptCall')
+  async acceptCall(
+    @ConnectedSocket() socket: Socket,
+    @Req() req: Request,
+    @MessageBody('groupId') groupId,
+  ) {
+    console.log('acceptCall', req.user.name);
+    this.callStatus[groupId].push({ ...req.user, clientId: socket.id });
+    this.server.to(groupId).emit('callStatus', this.callStatus[groupId]);
   }
 
   @SubscribeMessage('clearCall')
@@ -162,7 +166,7 @@ export class ChatGateway {
     @ConnectedSocket() socket: Socket,
     @MessageBody('groupId') groupId,
   ) {
-    this.callStatus = [];
+    this.callStatus[groupId] = [];
     console.log('call cleared');
   }
 
