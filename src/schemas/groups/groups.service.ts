@@ -5,6 +5,7 @@ import { UsersService } from '../users/users.service';
 import { AuthGuard } from '@nestjs/passport';
 import mongoose from 'mongoose';
 import 'bson';
+import { Message } from '../chats/message.schema';
 
 @Injectable()
 export class GroupsService {
@@ -12,8 +13,8 @@ export class GroupsService {
     private readonly groupsRepository: GroupsRepository,
     private readonly usersService: UsersService,
   ) {}
-  async getGroupById(userId: string): Promise<Group> {
-    return this.groupsRepository.findOne({ userId });
+  async getGroupById(groupId: string): Promise<Group> {
+    return await this.groupsRepository.findOne({ _id: groupId });
   }
 
   async createGroup(
@@ -30,8 +31,9 @@ export class GroupsService {
       name,
       members,
       admin: creatorId,
+      history: [],
     });
-    console.log(createdGroup._id);
+    // console.log(createdGroup._id);
 
     members.map(async (memberId) => {
       await this.usersService.updateUser(
@@ -43,6 +45,26 @@ export class GroupsService {
     console.log('req');
     return createdGroup;
   }
+
+  async addText(
+    sender: mongoose.Schema.Types.ObjectId,
+    text: string,
+    groupId: string,
+    senderName,
+  ) {
+    const message: Message = {
+      text,
+      sender,
+      senderName,
+      timestamp: Date.now(),
+    };
+    await this.groupsRepository.findOneAndUpdate(
+      { _id: groupId },
+      { $push: { history: message } },
+    );
+    return message;
+  }
+
   async joinGroup(userId: string, groupId: string) {
     await this.groupsRepository.findOneAndUpdate(
       { _id: groupId },

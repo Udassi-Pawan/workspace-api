@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { GroupsService } from './groups.service';
 import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from '../users/users.service';
@@ -32,6 +40,12 @@ export class GroupsController {
       userFromDb._id,
       ...members,
     ]);
+  }
+
+  @Get('/single/:groupId')
+ async getGroupById(@Param('groupId') groupId) {
+    console.log(await this.groupsService.getGroupById(groupId));
+    return await this.groupsService.getGroupById(groupId);
   }
 
   @Get('all')

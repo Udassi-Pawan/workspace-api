@@ -22,7 +22,7 @@ export class UsersRepository {
     });
   }
   async findAll() {
-    console.log('all', this.userModel.find({}));
+    // console.log('all', this.userModel.find({}));
     return this.userModel.find({});
   }
 }

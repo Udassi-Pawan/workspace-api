@@ -28,7 +28,7 @@ export class AuthService {
       { expiresIn: '60 days', secret: this.config.get('secret') },
     );
     const curUserFromDb = await this.usersService.getUser(email);
-    console.log(curUserFromDb);
+    // console.log(curUserFromDb);
     if (!curUserFromDb) {
       await this.usersService.createUser(email, name);
     }

@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
+import { Message } from '../chats/message.schema';
 
 export type GroupDocument = Group & Document;
 
@@ -16,6 +17,9 @@ export class Group {
 
   @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'User' })
   members: mongoose.Schema.Types.ObjectId[];
+
+  @Prop()
+  history: Message[];
 }
 
 export const GroupsSchema = SchemaFactory.createForClass(Group);

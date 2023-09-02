@@ -35,7 +35,7 @@ export class UsersController {
 
   @Get('/all')
   findAll() {
-    console.log('get all users', this.usersService.findAll());
+    // console.log('get all users', this.usersService.findAll());
     return this.usersService.findAll();
   }
 
@@ -47,7 +47,7 @@ export class UsersController {
   @UseGuards(AuthGuard('jwt'))
   @Post('/join')
   async joinGroup(@Req() req: Request, @Body() data: { groupId: string }) {
-    console.log('user join');
+    // console.log('user join');
     const userFromDb = await this.usersService.getUser(req.user.email);
     await this.groupsService.joinGroup(userFromDb._id, data.groupId);
     const updatedUser = await this.usersService.updateUser(
