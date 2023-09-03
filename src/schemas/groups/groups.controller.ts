@@ -43,8 +43,7 @@ export class GroupsController {
   }
 
   @Get('/single/:groupId')
- async getGroupById(@Param('groupId') groupId) {
-    console.log(await this.groupsService.getGroupById(groupId));
+  async getGroupById(@Param('groupId') groupId) {
     return await this.groupsService.getGroupById(groupId);
   }
 

@@ -16,12 +16,10 @@ export class CollabGateway {
   server: any;
   @SubscribeMessage('message')
   handleMessage(client: any, payload: any): string {
-    // console.log('req');
     return 'Hello world!';
   }
   @SubscribeMessage('/collaboration/:document')
   handleDoc(client: any, @Req() req: any) {
-    // console.log(req);
     const server = Server.configure({
       name: '127.0.0.1',
       port: 3333,

@@ -33,7 +33,6 @@ export class GroupsService {
       admin: creatorId,
       history: [],
     });
-    // console.log(createdGroup._id);
 
     members.map(async (memberId) => {
       await this.usersService.updateUser(
@@ -42,7 +41,6 @@ export class GroupsService {
       );
     });
 
-    console.log('req');
     return createdGroup;
   }
 

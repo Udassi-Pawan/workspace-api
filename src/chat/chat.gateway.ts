@@ -57,13 +57,7 @@ export class ChatGateway {
 
   @UseGuards(WsGuard)
   @SubscribeMessage('usersOnline')
-  async usersOnline(
-    @ConnectedSocket() client: Socket,
-    @MessageBody('groupId') groupId: string,
-  ) {
-    console.log('request for users online ', groupId, {
-      usersOnline: this.roomJoined[groupId],
-    });
+  async usersOnline(@MessageBody('groupId') groupId: string) {
     return {
       usersOnline: this.roomJoined[groupId],
       callStatus: this.callStatus[groupId],
@@ -158,7 +152,9 @@ export class ChatGateway {
   ) {
     console.log('acceptCall', req.user.name);
     this.callStatus[groupId].push({ ...req.user, clientId: socket.id });
-    this.server.to(groupId).emit('callStatus', this.callStatus[groupId]);
+    this.server
+      .to(groupId)
+      .emit(`callStatus${groupId}`, this.callStatus[groupId]);
   }
 
   @SubscribeMessage('clearCall')
@@ -171,8 +167,16 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('endCall')
-  async endCall(@ConnectedSocket() socket: Socket, @MessageBody() payload) {
-    const user = this.socketToUser[socket.id];
-    console.log('call ended by', user);
+  async endCall(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('groupId') groupId,
+  ) {
+    this.roomJoined[groupId] = this.roomJoined[groupId]?.filter(function (e) {
+      return e.clientId !== client.id;
+    });
+    console.log('end ', client, this.callStatus[groupId]);
+    this.server
+      .to(groupId)
+      .emit(`callStatus${groupId}`, this.callStatus[groupId]);
   }
 }

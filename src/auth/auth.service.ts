@@ -17,7 +17,6 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
   async login(tokenId: string) {
-    console.log('request');
     const ticket = await client.verifyIdToken({
       idToken: tokenId.slice(7),
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -28,7 +27,6 @@ export class AuthService {
       { expiresIn: '60 days', secret: this.config.get('secret') },
     );
     const curUserFromDb = await this.usersService.getUser(email);
-    // console.log(curUserFromDb);
     if (!curUserFromDb) {
       await this.usersService.createUser(email, name);
     }

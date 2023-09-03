@@ -23,16 +23,4 @@ export class AuthController {
   signin(@Req() req: Request) {
     return this.authService.login(req.headers.authorization);
   }
-
-  // @UseGuards(AuthGuard('jwt'))
-  // @Get('access')
-  // getData(@Req() req: Request) {
-  //   // console.log(req.user);
-  //   return req.user;
-  // }
-
-  // @Get('test')
-  // Test() {
-  //   return 'workgin';
-  // }
 }
