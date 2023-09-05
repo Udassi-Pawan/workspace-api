@@ -171,10 +171,10 @@ export class ChatGateway {
     @ConnectedSocket() client: Socket,
     @MessageBody('groupId') groupId,
   ) {
-    this.roomJoined[groupId] = this.roomJoined[groupId]?.filter(function (e) {
+    this.callStatus[groupId] = this.callStatus[groupId]?.filter(function (e) {
       return e.clientId !== client.id;
     });
-    console.log('end ', client, this.callStatus[groupId]);
+    console.log('end ', client.id, 'groupId', groupId);
     this.server
       .to(groupId)
       .emit(`callStatus${groupId}`, this.callStatus[groupId]);
