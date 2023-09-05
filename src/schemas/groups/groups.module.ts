@@ -13,6 +13,6 @@ import { UsersModule } from '../users/users.module';
   ],
   controllers: [GroupsController],
   providers: [GroupsRepository, GroupsService],
-  exports: [GroupsService],
+  exports: [GroupsService, GroupsRepository],
 })
 export class GroupsModule {}

@@ -12,11 +12,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { UsersService } from '../users/users.service';
 import mongoose from 'mongoose';
 
-class CreateUserDto {
-  name: string;
-  members: string[];
-}
-
 class Request {
   user: any;
 }

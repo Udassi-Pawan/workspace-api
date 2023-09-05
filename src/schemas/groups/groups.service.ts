@@ -32,6 +32,7 @@ export class GroupsService {
       members,
       admin: creatorId,
       history: [],
+      docs: [],
     });
 
     members.map(async (memberId) => {
@@ -71,5 +72,9 @@ export class GroupsService {
   }
   async getAllGroups() {
     return await this.groupsRepository.findAll();
+  }
+
+  async updateDoc(groupId, docName) {
+    const myDoc = this.groupsRepository.findOne({ _id: groupId });
   }
 }

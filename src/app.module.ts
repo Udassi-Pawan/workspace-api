@@ -5,8 +5,7 @@ import { ChatModule } from './chat/chat.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './schemas/users/users.module';
 import { GroupsModule } from './schemas/groups/groups.module';
-import { CollabModule } from './collab/collab.module';
-import { CollabGateway } from './collab/collab.gateway';
+import { DocsModule } from './schemas/docs/docs.module';
 @Module({
   imports: [
     AuthModule,
@@ -17,8 +16,8 @@ import { CollabGateway } from './collab/collab.gateway';
     ),
     UsersModule,
     GroupsModule,
-    CollabModule,
+    DocsModule,
   ],
-  providers: [CollabGateway],
+  // providers: [CollabGateway],
 })
 export class AppModule {}

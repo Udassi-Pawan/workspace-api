@@ -35,7 +35,6 @@ export class ChatGateway {
       console.log('disconnected', user, client.id);
 
       const userFromDb: any = await this.usersService.getUser(user.email);
-
       const groups = userFromDb.groups.reduce(
         (total, curr: any) => [...total, String(curr._id)],
         [],
