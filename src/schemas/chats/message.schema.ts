@@ -23,6 +23,9 @@ export class Message {
     required: true,
   })
   text: string;
+
+  @Prop()
+  image: string;
 }
 
 export const MessagesSchema = SchemaFactory.createForClass(Message);

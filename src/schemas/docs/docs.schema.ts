@@ -16,9 +16,7 @@ export class Doc {
   })
   timestamp: number;
 
-  @Prop({
-    required: true,
-  })
+  @Prop()
   text: string;
 
   @Prop({

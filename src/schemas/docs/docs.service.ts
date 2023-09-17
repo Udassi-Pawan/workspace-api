@@ -10,12 +10,11 @@ export class DocsService {
     private readonly docsRepository: DocsRepository,
     private readonly groupsRepository: GroupsRepository, // private readonly groupsService: GroupsService,
   ) {}
-  async createDoc(groupId, docName, text) {
-    const docFinalName = `${groupId} ${docName}`;
+  async createDoc(groupId, docName) {
     const doc = {
-      name: docFinalName,
+      name: docName,
       timestamp: Date.now(),
-      text,
+      text: '',
       groupId: groupId,
     };
     const savedDoc = await this.docsRepository.create(doc);
@@ -23,24 +22,18 @@ export class DocsService {
       { _id: groupId },
       { $push: { docs: savedDoc._id } },
     );
-    return finalGroup;
+    return savedDoc;
   }
-  async updateDoc(groupId, docName, text) {
-    const docFinalName = `${groupId} ${docName}`;
-    const doc = {
-      name: docFinalName,
-      timestamp: Date.now(),
-      text,
-    };
+  async updateDoc(docId, text) {
     return await this.docsRepository.findOneAndUpdate(
-      { name: docFinalName },
+      { _id: docId },
       {
         text: text,
         timestamp: Date.now(),
       },
     );
   }
-  async findDoc(name) {
-    return await this.docsRepository.findOne({ name: name });
+  async findDoc(docId) {
+    return await this.docsRepository.findOne({ _id: docId });
   }
 }

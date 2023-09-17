@@ -103,6 +103,7 @@ export class ChatGateway {
   @UseGuards(WsGuard)
   @SubscribeMessage('createChat')
   async create(
+    @MessageBody('image') image: string,
     @MessageBody('text') text: string,
     @MessageBody('groupId') groupId: string,
     @Req() req: Request,
@@ -115,6 +116,7 @@ export class ChatGateway {
         senderName: userFromDb.name,
         text,
         groupId,
+        image,
       });
 
       this.server.to(groupId).emit('message', message);

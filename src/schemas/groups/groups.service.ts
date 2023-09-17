@@ -50,12 +50,14 @@ export class GroupsService {
     text: string,
     groupId: string,
     senderName,
+    image: string,
   ) {
     const message: Message = {
       text,
       sender,
       senderName,
       timestamp: Date.now(),
+      image,
     };
     await this.groupsRepository.findOneAndUpdate(
       { _id: groupId },
