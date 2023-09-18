@@ -22,6 +22,13 @@ export class User {
     required: true,
   })
   groups: mongoose.Schema.Types.ObjectId[];
+
+  @Prop({
+    type: [mongoose.Schema.Types.ObjectId],
+    ref: 'File',
+    required: true,
+  })
+  files: mongoose.Schema.Types.ObjectId[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

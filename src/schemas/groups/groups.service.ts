@@ -33,6 +33,7 @@ export class GroupsService {
       admin: creatorId,
       history: [],
       docs: [],
+      files: [],
     });
 
     members.map(async (memberId) => {

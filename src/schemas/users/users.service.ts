@@ -13,6 +13,7 @@ export class UsersService {
       email,
       name,
       groups: [],
+      files: [],
     });
   }
   async updateUser(filter, update) {

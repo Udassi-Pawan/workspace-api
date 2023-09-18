@@ -9,7 +9,9 @@ export class GroupsRepository {
     @InjectModel(Group.name) private GroupModel: Model<GroupDocument>,
   ) {}
   async findOne(GroupFilterQuery: FilterQuery<Group>): Promise<Group> {
-    return this.GroupModel.findOne(GroupFilterQuery).populate('members');
+    return this.GroupModel.findOne(GroupFilterQuery)
+      .populate('members')
+      .populate('files');
   }
   async create(Group: Group): Promise<GroupDocument> {
     const newGroup = new this.GroupModel(Group);

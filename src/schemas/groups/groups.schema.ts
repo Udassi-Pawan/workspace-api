@@ -23,6 +23,9 @@ export class Group {
 
   @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'Doc' })
   docs: mongoose.Schema.Types.ObjectId[];
+
+  @Prop({ type: [mongoose.Schema.Types.ObjectId], ref: 'File' })
+  files: mongoose.Schema.Types.ObjectId[];
 }
 
 export const GroupsSchema = SchemaFactory.createForClass(Group);

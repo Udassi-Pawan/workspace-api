@@ -6,6 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UsersModule } from './schemas/users/users.module';
 import { GroupsModule } from './schemas/groups/groups.module';
 import { DocsModule } from './schemas/docs/docs.module';
+import { S3Module } from './s3/s3.module';
+import { FilesModule } from './files/files.module';
 @Module({
   imports: [
     AuthModule,
@@ -17,6 +19,8 @@ import { DocsModule } from './schemas/docs/docs.module';
     UsersModule,
     GroupsModule,
     DocsModule,
+    S3Module,
+    FilesModule,
   ],
   // providers: [CollabGateway],
 })
