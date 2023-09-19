@@ -184,4 +184,45 @@ export class ChatGateway {
       .to(groupId)
       .emit(`callStatus${groupId}`, this.callStatus[groupId]);
   }
+
+  ///////////////////////// whiteboard
+
+  @SubscribeMessage('client-ready')
+  async clientReady(
+    @MessageBody('groupId') groupId,
+    @ConnectedSocket() socket: Socket,
+  ) {
+    console.log('client ready');
+    socket.broadcast.to(groupId).emit('get-canvas-state');
+  }
+
+  @SubscribeMessage('canvas-state')
+  async canvasState(
+    @MessageBody('groupId') groupId,
+    @MessageBody('state') state,
+    @ConnectedSocket() socket: Socket,
+  ) {
+    console.log('received canvas state');
+    setTimeout(() => {
+      this.server.to(groupId).emit('canvas-state-from-server', state);
+    }, 1000);
+  }
+
+  @SubscribeMessage('draw-line')
+  async drawLine(
+    @MessageBody('groupId') groupId,
+    @MessageBody('prevPoint') prevPoint,
+    @MessageBody('currentPoint') currentPoint,
+    @MessageBody('color') color,
+    @ConnectedSocket() socket: Socket,
+  ) {
+    socket.broadcast
+      .to(groupId)
+      .emit('draw-line', { prevPoint, currentPoint, color });
+  }
+
+  @SubscribeMessage('clear')
+  async clear(@MessageBody('groupId') groupId) {
+    this.server.to(groupId).emit('clear');
+  }
 }
