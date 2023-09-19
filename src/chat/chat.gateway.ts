@@ -10,6 +10,7 @@ import { Socket } from 'socket.io';
 import { Req, UseGuards } from '@nestjs/common';
 import { WsGuard } from 'src/auth/strategy/ws.gaurd';
 import { UsersService } from 'src/schemas/users/users.service';
+import { S3Service } from 'src/s3/s3.service';
 
 type Request = {
   user: any;
@@ -26,6 +27,7 @@ export class ChatGateway {
   constructor(
     private readonly chatService: ChatService,
     private readonly usersService: UsersService,
+    private readonly s3Service: S3Service,
   ) {}
 
   handleConnection(client: Socket) {
@@ -106,6 +108,7 @@ export class ChatGateway {
     @MessageBody('image') image: string,
     @MessageBody('text') text: string,
     @MessageBody('groupId') groupId: string,
+    @MessageBody('video') video: string,
     @Req() req: Request,
   ) {
     console.log('received ', text, groupId, req.user.name);
@@ -117,6 +120,7 @@ export class ChatGateway {
         text,
         groupId,
         image,
+        video,
       });
 
       this.server.to(groupId).emit('message', message);

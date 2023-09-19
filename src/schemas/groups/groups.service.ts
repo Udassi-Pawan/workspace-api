@@ -52,8 +52,10 @@ export class GroupsService {
     groupId: string,
     senderName,
     image: string,
+    video: string,
   ) {
     const message: Message = {
+      video,
       text,
       sender,
       senderName,

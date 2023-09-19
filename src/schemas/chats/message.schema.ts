@@ -26,6 +26,9 @@ export class Message {
 
   @Prop()
   image: string;
+
+  @Prop()
+  video: string;
 }
 
 export const MessagesSchema = SchemaFactory.createForClass(Message);
