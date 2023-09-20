@@ -17,6 +17,10 @@ export class GroupsService {
     return await this.groupsRepository.findOne({ _id: groupId });
   }
 
+  async getGroupByName(groupName: string): Promise<GroupDocument> {
+    return await this.groupsRepository.findOne({ name: groupName });
+  }
+
   async createGroup(
     name: string,
     creatorId: mongoose.Schema.Types.ObjectId,
@@ -75,6 +79,7 @@ export class GroupsService {
       { $push: { members: userId } },
     );
   }
+
   async getAllGroups() {
     return await this.groupsRepository.findAll();
   }

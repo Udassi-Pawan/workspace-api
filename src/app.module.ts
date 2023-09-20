@@ -8,6 +8,7 @@ import { GroupsModule } from './schemas/groups/groups.module';
 import { DocsModule } from './schemas/docs/docs.module';
 import { S3Module } from './s3/s3.module';
 import { FilesModule } from './files/files.module';
+import { BotModule } from './bot/bot.module';
 @Module({
   imports: [
     AuthModule,
@@ -21,6 +22,7 @@ import { FilesModule } from './files/files.module';
     DocsModule,
     S3Module,
     FilesModule,
+    BotModule,
   ],
   // providers: [CollabGateway],
 })
