@@ -192,7 +192,7 @@ export class ChatGateway {
     @MessageBody('groupId') groupId,
     @ConnectedSocket() socket: Socket,
   ) {
-    console.log('client ready');
+    console.log('client ready', groupId);
     socket.broadcast.to(groupId).emit('get-canvas-state');
   }
 

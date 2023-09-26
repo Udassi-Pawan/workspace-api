@@ -59,8 +59,15 @@ export class FilesController {
 
   @UseGuards(AuthGuard('jwt'))
   @Post('download')
-  async downloadFile(@Req() req: Request, @Body('filename') filename: string) {
-    const url = this.s3Service.getPresignedDownloadUrl(filename);
+  async downloadFile(
+    @Req() req: Request,
+    @Body('filename') filename: string,
+    @Body('originalFilename') originalFilename: string,
+  ) {
+    const url = this.s3Service.getPresignedDownloadUrl(
+      filename,
+      originalFilename,
+    );
     console.log(url);
     return url;
   }

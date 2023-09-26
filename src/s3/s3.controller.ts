@@ -11,7 +11,7 @@ export class S3Controller {
     @Body('filename') filename: string,
     @Body('originalFilename') originalFilename: string,
   ) {
-    return this.s3service.getPresignedDownloadUrl(filename);
+    return this.s3service.getPresignedDownloadUrl(filename, originalFilename);
   }
 
   @Post('upload')

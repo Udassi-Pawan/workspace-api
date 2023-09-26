@@ -11,7 +11,13 @@ export class GroupsRepository {
   async findOne(GroupFilterQuery: FilterQuery<Group>): Promise<GroupDocument> {
     return this.GroupModel.findOne(GroupFilterQuery)
       .populate('members')
-      .populate('files');
+      .populate({
+        path: 'files',
+        populate: {
+          path: 'owner', // Specify the field you want to populate inside 'files'
+        },
+      })
+      .populate('docs');
   }
   async create(Group: Group): Promise<GroupDocument> {
     const newGroup = new this.GroupModel(Group);

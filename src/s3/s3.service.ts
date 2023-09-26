@@ -24,10 +24,13 @@ export class S3Service {
     return { uploadUrl, Key };
   }
 
-  async getPresignedDownloadUrl(filename: string) {
+  async getPresignedDownloadUrl(filename: string, originalFilename) {
+    console.log('originalFilename', originalFilename);
     const s3Params = {
       Bucket: process.env.S3_BUCKET_NAME,
       Key: filename,
+      ResponseContentDisposition: `attachment; filename="${originalFilename}"`,
+
       Expires: 60 * 3,
     };
     return await this.s3.getSignedUrl('getObject', s3Params);
