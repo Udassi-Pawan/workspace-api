@@ -6,11 +6,19 @@ export type GroupDocument = Group & Document;
 
 @Schema()
 export class Group {
+  @Prop()
+  image: string;
+
   @Prop({
     required: true,
     unique: true,
   })
   name: string;
+
+  @Prop({
+    required: true,
+  })
+  description: string;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   admin: mongoose.Schema.Types.ObjectId;

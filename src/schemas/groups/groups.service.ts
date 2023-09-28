@@ -25,6 +25,8 @@ export class GroupsService {
     name: string,
     creatorId: mongoose.Schema.Types.ObjectId,
     members: mongoose.Schema.Types.ObjectId[],
+    image: string,
+    description: string,
   ): Promise<GroupDocument | string> {
     const allGroups = await this.getAllGroups();
     if (allGroups.find((g) => g.name == name)) {
@@ -33,6 +35,8 @@ export class GroupsService {
     }
     const createdGroup = await this.groupsRepository.create({
       name,
+      image,
+      description,
       members,
       admin: creatorId,
       history: [],
