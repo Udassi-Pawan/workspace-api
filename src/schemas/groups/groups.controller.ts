@@ -49,7 +49,7 @@ export class GroupsController {
     const group = await this.groupsService.getGroupById(groupId);
     console.log('group request');
     if (group.members.find((m: any) => m.email == req.user.email)) return group;
-    else return 'You are not a member';
+    else return { _id: 'none' };
   }
 
   @Get('all')

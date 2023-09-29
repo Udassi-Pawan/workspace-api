@@ -84,6 +84,12 @@ export class GroupsService {
     );
   }
 
+  async leaveGroup(userId: string, groupId: string) {
+    await this.groupsRepository.findOneAndUpdate(
+      { _id: groupId },
+      { $pull: { members: userId } },
+    );
+  }
   async getAllGroups() {
     return await this.groupsRepository.findAll();
   }

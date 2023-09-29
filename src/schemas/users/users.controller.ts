@@ -58,4 +58,19 @@ export class UsersController {
     );
     return updatedUser;
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('/leave')
+  async leaveGroup(@Req() req: Request, @Body() data: { groupId: string }) {
+    console.log('user leave', data.groupId);
+    const userFromDb = await this.usersService.getUser(req.user.email);
+    await this.groupsService.leaveGroup(userFromDb._id, data.groupId);
+    const updatedUser = await this.usersService.updateUser(
+      { _id: userFromDb._id },
+      {
+        $pull: { groups: data.groupId },
+      },
+    );
+    return updatedUser;
+  }
 }
