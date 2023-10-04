@@ -14,6 +14,7 @@ export class UsersService {
       name,
       groups: [],
       files: [],
+      notificationToken: '',
     });
   }
   async updateUser(filter, update) {

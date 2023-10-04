@@ -10,7 +10,7 @@ import { Socket } from 'socket.io';
 import { Req, UseGuards } from '@nestjs/common';
 import { WsGuard } from 'src/auth/strategy/ws.gaurd';
 import { UsersService } from 'src/schemas/users/users.service';
-import { S3Service } from 'src/s3/s3.service';
+import { GroupsService } from 'src/schemas/groups/groups.service';
 
 type Request = {
   user: any;
@@ -27,7 +27,7 @@ export class ChatGateway {
   constructor(
     private readonly chatService: ChatService,
     private readonly usersService: UsersService,
-    private readonly s3Service: S3Service,
+    private readonly groupsService: GroupsService,
   ) {}
 
   handleConnection(client: Socket) {
@@ -108,6 +108,7 @@ export class ChatGateway {
     @MessageBody('image') image: string,
     @MessageBody('text') text: string,
     @MessageBody('groupId') groupId: string,
+    @ConnectedSocket() socket: Socket,
     @MessageBody('video') video: string,
     @Req() req: Request,
   ) {
@@ -124,7 +125,7 @@ export class ChatGateway {
       });
 
       this.server.to(groupId).emit('message', message);
-      this.server.to(groupId).emit(`message ${groupId}`, message);
+      socket.broadcast.to(groupId).emit(`message ${groupId}`, message);
       return message;
     } else return 'user not member of group';
   }

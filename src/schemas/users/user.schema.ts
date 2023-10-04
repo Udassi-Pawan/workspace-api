@@ -29,6 +29,9 @@ export class User {
     required: true,
   })
   files: mongoose.Schema.Types.ObjectId[];
+
+  @Prop()
+  notificationToken: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
