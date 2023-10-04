@@ -53,10 +53,23 @@ export class BotController {
         },
       );
       return {
-        fulfillmentText: 'join group ' + groupName,
+        fulfillmentText: 'Successfully joined group ' + groupName,
       };
     } else if (intent == 'leave group') {
-      console.log('leave group', req.body.queryResult.parameters['group-name']);
+      const groupName = req.body.queryResult.parameters['group-name'];
+      console.log('leave group', groupName);
+      const userFromDb = await this.usersService.getUser(user.email);
+      const groupFromDb = await this.groupsService.getGroupByName(groupName);
+      await this.groupsService.leaveGroup(userFromDb._id, groupFromDb._id);
+      await this.usersService.updateUser(
+        { _id: userFromDb._id },
+        {
+          $pull: { groups: groupFromDb._id },
+        },
+      );
+      return {
+        fulfillmentText: 'Successfully left group ' + groupName,
+      };
     }
     return {
       fulfillmentText: 'received',
