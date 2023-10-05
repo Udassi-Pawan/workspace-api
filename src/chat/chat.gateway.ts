@@ -124,7 +124,7 @@ export class ChatGateway {
         video,
       });
 
-      this.server.to(groupId).emit('message', message);
+      socket.broadcast.to(groupId).emit('message', message);
       this.server.to(groupId).emit(`message ${groupId}`, message);
       return message;
     } else return 'user not member of group';
