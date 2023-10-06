@@ -53,7 +53,7 @@ export class BotController {
         },
       );
       return {
-        fulfillmentText: 'Successfully joined group ' + groupName,
+        fulfillmentText: `Successfully joined group  ${groupName}, Reload now to see changes.`,
       };
     } else if (intent == 'leave group') {
       const groupName = req.body.queryResult.parameters['group-name'];
@@ -68,7 +68,7 @@ export class BotController {
         },
       );
       return {
-        fulfillmentText: 'Successfully left group ' + groupName,
+        fulfillmentText: `Successfully left group  ${groupName}, Reload now to see changes.`,
       };
     }
     return {
