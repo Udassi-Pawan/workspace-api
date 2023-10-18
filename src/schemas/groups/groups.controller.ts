@@ -43,13 +43,11 @@ export class GroupsController {
     );
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('/single/:groupId')
-  async getGroupById(@Param('groupId') groupId, @Req() req: Request) {
+  async getGroupById(@Param('groupId') groupId) {
     const group = await this.groupsService.getGroupById(groupId);
     console.log('group request');
-    if (group.members.find((m: any) => m.email == req.user.email)) return group;
-    else return { _id: 'none' };
+    return group;
   }
 
   @Get('all')

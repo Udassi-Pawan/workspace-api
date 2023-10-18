@@ -65,41 +65,16 @@ export class ChatGateway {
     };
   }
 
-  @UseGuards(WsGuard)
-  @SubscribeMessage('join')
-  async joinRoom(@ConnectedSocket() client: Socket, @Req() req: Request) {
-    this.socketToUser[client.id] = req.user;
-    console.log('connected', client.id, req.user.name);
+  @SubscribeMessage('whoOnline')
+  async whoIsOnline() {
+    return this.socketToUser;
+  }
 
-    const userFromDb: any = await this.usersService.getUser(req.user.email);
-    const groups = userFromDb.groups.reduce(
-      (total, curr: any) => [...total, String(curr)],
-      [],
-    );
-
-    client.join(groups);
-    const callStatusForUser = {};
-
-    groups.map(async (g) => {
-      if (this.callStatus[g]) callStatusForUser[g] = this.callStatus[g];
-      if (!this.roomJoined[g]) this.roomJoined[g] = [];
-      this.roomJoined[g].push({
-        ...req.user,
-        _id: userFromDb._id,
-        clientId: client.id,
-      });
-      this.server
-        .to(g)
-        .emit(
-          `usersOnline${String(g)}`,
-          { usersOnline: this.roomJoined[g] },
-          (res) => {
-            console.log(`sent online users with event usersOnline${String(g)}`);
-          },
-        );
-    });
-
-    return callStatusForUser;
+  @SubscribeMessage('joinSocket')
+  async joinRoom(@ConnectedSocket() client) {
+    console.log('joined client', client.id);
+    this.socketToUser.push(client.id);
+    return client.id;
   }
 
   @UseGuards(WsGuard)
@@ -131,7 +106,7 @@ export class ChatGateway {
   }
 
   roomJoined = {};
-  socketToUser = {};
+  socketToUser = [];
   callStatus = {};
 
   /////////////////////////// video
