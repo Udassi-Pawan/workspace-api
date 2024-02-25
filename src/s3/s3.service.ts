@@ -8,7 +8,7 @@ export class S3Service {
     apiVersion: '2006-03-01',
     accessKeyId: process.env.AWS_ACCESS_KEY,
     secretAccessKey: process.env.AWS_SECRET_KEY,
-    region: 'us-east-1',
+    region: process.env.S3_REGION,
     signatureVersion: 'v4',
   });
   async getPresignedUploadUrl(filetype: string, fileId: string) {
